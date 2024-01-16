@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="19" height="18" viewBox="0 0 19 18">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #12142a;
+        stroke: #202c4a;
+        stroke-width: 3px;
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M1883,30h16" transform="translate(-1881.5 -28.5)"/>
+  <path id="Shape_765_copy" data-name="Shape 765 copy" class="cls-1" d="M1883,36h16" transform="translate(-1881.5 -28.5)"/>
+  <path id="Shape_765_copy_2" data-name="Shape 765 copy 2" class="cls-1" d="M1891,42h8" transform="translate(-1881.5 -28.5)"/>
+</svg>

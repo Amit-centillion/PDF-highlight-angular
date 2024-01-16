@@ -1,0 +1,32 @@
+<div class="slider-container">
+    <ngx-slider [(value)]="zoomLevel" [options]="zoomSlider" (userChange)="updateZoomLevel($event)"></ngx-slider>
+</div>
+<div class="pdfCanvasContainer" (mouseenter)="showPclData()" (mouseleave)="hidePclData()"
+    (mousemove)="movePclData($event)">
+    <canvas (click)="selectLabelGroup()" class="pdfCanvas" #pdfCanvas width="800" height="600"></canvas>
+    <div class="boundingBoxOverlay" #boundingBoxOverlay>
+        <ng-container>
+            <div class="bounding-box" [ngStyle]="{
+                'top.px': box.top,
+                'left.px': box.left,
+                'width.px': box.width,
+                'height.px': box.height,
+                'background-color': 'yellow',
+                'opacity': 0.5,
+                'z-index': 999,
+            }">
+            </div>
+        </ng-container>
+    </div>
+</div>
+<div *ngIf="readableLabels" class="readableLabels"><strong>Label(s): </strong><span>{{ readableLabels }}</span></div>
+<ng-container *ngIf="isShowingPclData && selectedLabels.length > 0">
+    <div class="mouse-tooltip" [ngStyle]="{
+        'top.px': pclDataTop,
+        'left.px': pclDataLeft,
+    }">
+        <h5>PCL data</h5>
+        <p *ngIf="pclData">{{ pclData }}</p>
+        <p *ngIf="!pclData">N/A</p>
+    </div>
+</ng-container>

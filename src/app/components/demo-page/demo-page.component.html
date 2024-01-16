@@ -1,0 +1,168 @@
+<header id="header" class="header header-nav fixed-top align-items-center">
+    <nav class="navbar navbar-expand-md navbar-light bg-light p-0">
+        <div class="container-fluid">
+            <a class="navbar-brand"><img src="../../assets/images/m_logo.png" class="img-fluid" /></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="">Data Extraction</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="">Users</a>
+                    </li>
+                </ul>
+                <ul class="d-flex header-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-icon nav-profile d-flex align-items-center me-0" href="#"
+                            data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span
+                                class="d-none d-md-block dropdown-toggle ps-2">John Doe</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+                            <li> <a class="dropdown-item d-flex align-items-center" href=""> <i
+                                        class="bi bi-box-arrow-right"></i> <span>Sign Out</span> </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<main id="main">
+    <div class="pagetitle">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item" aria-current="page"><i class="bi bi-house"></i></li>
+                <li class="breadcrumb-item" aria-current="page">Projects</li>
+                <li class="breadcrumb-item active" aria-current="page">Project Details</li>
+            </ol>
+        </nav>
+    </div>
+    <section class="section">
+        <div class="row">
+            <div class="col-12">
+                <div class="card pdfView shadow-none">
+                    <div class="card-body p-0">
+
+                        <div class="divFilter_bg">
+                            <div class="d-flex align-items-center justify-content-start">
+                                <div class="ms-3">
+                                    <label for="selLocation">Document: </label>
+                                </div>
+                                <div class="ms-1">
+                                    <select class="form-select" name="documentType" [(ngModel)]="pdfLabelsFile" (ngModelChange)="updateModelId()">
+                                        <option value="">Select Document Type</option>
+                                        <option *ngFor="let document of documentList" [value]="document.id">
+                                            {{document.docNameStartWith}}
+                                        </option>
+                                    </select>
+                                </div>
+                                <button type="submit" id="documentListSearch" class="btn btn-primary ms-2"
+                                    (click)="onDocumentTypeChange(pdfLabelsFile)">
+                                    <span id="displaytxt">Extract</span>
+                                    <span id="displayIco" class="hide"><i class="bi bi-eye f-12"></i></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class=" main-table">
+                            <div class="row mt-2">
+                                <div class="col-sm-8">
+                                    <div class="pdf-viewer space">
+                                        <ng-container *ngIf="selectedCondition && !selectedLabelGroup">
+                                            <ng-container *ngFor="let labelGroup of selectedCondition.labelGroups">
+                                                <app-pdf-thumbnail
+                                                    [ngClass]="{'single': selectedCondition.labelGroups.length === 1}"
+                                                    [pdfSource]="pdfSource" [pageNumber]="labelGroup.pageNumber"
+                                                    [selectedLabels]="labelGroup.labels"
+                                                    [defaultZoomLevel]="labelGroup.zoomLevel"
+                                                    [pclData]="labelGroup.pclData"
+                                                    (selectLabelGroupEvent)="selectLabelGroup($event)"></app-pdf-thumbnail>
+                                            </ng-container>
+                                        </ng-container>
+                                        <ng-container *ngIf="pdfSource && (!selectedCondition || selectedLabelGroup)">
+                                            <div class="no-condition-section">
+                                                <header>
+                                                    <button class="previous"
+                                                        [ngClass]="{'inactive': selectedPageInDocument === 1}"
+                                                        (click)="goToDefaultDocumentPage(selectedPageInDocument - 1)">
+                                                        <img width="14" src="assets/next.svg" alt="" />
+                                                    </button>
+                                                    <div>
+                                                        <h4>Page {{ selectedPageInDocument}} of {{ totalPagesInDocument
+                                                            }}</h4>
+                                                    </div>
+                                                    <button class="next"
+                                                        [ngClass]="{'inactive': selectedPageInDocument === totalPagesInDocument}"
+                                                        (click)="goToDefaultDocumentPage(selectedPageInDocument + 1)">
+                                                        <img width="14" src="assets/next.svg" alt="" />
+                                                    </button>
+                                                </header>
+                                                <app-pdf-thumbnail [pdfSource]="pdfSource"
+                                                    [pageNumber]="selectedPageInDocument"
+                                                    [selectedLabels]="selectedLabelGroup && selectedLabelGroup.pageNumber === selectedPageInDocument ? selectedLabelGroup.labels : []"
+                                                    (totalPagesEvent)="updateDefaultTotalPages($event)"></app-pdf-thumbnail>
+
+                                            </div>
+                                        </ng-container>
+
+                                    </div>
+                                </div>
+
+                                <div id="divDataView" class="col-sm-4" *ngIf="isExtractButtonClicked">
+                                    <div class="card mb-0">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <h1>Data Extraction</h1>
+                                                <div class="text-end">
+                                                    <button type="submit" id="SubmitEntries"
+                                                        class="btn btn-secondary mb-2">Submit</button>
+                                                </div>
+                                            </div>
+                                            <div class="divTable">
+                                                <table id="example" class="table mytable-new" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th width="20%">{{documentName}}</th>
+                                                            <th width="80%">Extracted Value Label</th>
+                                                            <th>Accuracy</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>                                                       
+                                                        <tr *ngFor="let item of extractedData">
+                                                            <td>{{item.fieldDisplayName}}</td>
+                                                            <td>
+                                                                <div class="input-group"  [ngClass]="{
+                                                                    's-red': ((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) / 2) * 100 < 50,
+                                                                    's-yellow': ((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) / 2) * 100 >= 50 && ((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) / 2) * 100 <= 80,
+                                                                    's-green': ((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) / 2) * 100 > 80
+                                                                  }">
+                                                                    <input type="text" class="form-control"
+                                                                        value="{{item.fieldValue}}"
+                                                                        (focus)="highlight(item, 1)"
+                                                                        (blur)="highlight(item, 2)" />                                                             
+                                                                </div>
+                                                            </td>
+                                                            <td>                                                                        
+                                                                <span class="input-group-text" [title]="'Accuracy: ' + (convertToNumber(item.accuracy) * 100) + '% Confidence: ' + (convertToNumber(item.confidence) * 100) + '%'">{{((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) /2) * 100 | number:'1.2-2'}}%</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <section class="container">
+
+                        </section>
