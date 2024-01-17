@@ -176,7 +176,7 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
                     inputBox.width = (htmlWidth + (0.3 * htmlWidth)) * 96;
                 }
 
-                this.renderPdfPage(page, viewport);
+                // this.renderPdfPage(page, viewport);
                 this.box = inputBox;
             });
         }
@@ -206,7 +206,6 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
        
 
         this.updatedZoomLevel = zoomLevel.value;
-
 
         this.setCanvasSize(viewport);
         this.renderPdfPage(this.page, viewport);

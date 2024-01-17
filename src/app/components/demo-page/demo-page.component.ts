@@ -154,7 +154,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
 
     async onDocumentTypeChange(newValue: any) {
         this.selectedDocumentId = newValue;
-        console.log(this.selectedDocumentId)
+        // console.log(this.selectedDocumentId)
         await this.downloadFile();
         this.ExtractData();
         this.updateLabelsDoc();
@@ -167,7 +167,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
         if (response) {
             const file = new File([response], 'filename', { type: 'application/pdf' });
             this.DataExtraction.DataExtraction(this.selectedDocumentId, file, '9e224968-33e4-4652-b7b7-8574d048cdb9').subscribe((response: any) => {
-                console.log(response);
+                // console.log(response);
                 this.extractedData = response.data;
             });
         } else {
@@ -178,13 +178,13 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     downloadFile(): Promise<void> {
         return new Promise((resolve, reject) => {
             const fileId = this.selectedDocumentId;
-            console.log(fileId)
+            // console.log(fileId)
             if (fileId) {
                 this.sftp.DownloadFile(fileId).subscribe((response: Blob) => {
-                    console.log(response);
+                    // console.log(response);
                     const fileUrl = URL.createObjectURL(response);
                     this.currentPdfSource.document = fileUrl;
-                    console.log(this.currentPdfSource)
+                    // console.log(this.currentPdfSource)
                     this.fetchDataFromFile();
                     resolve();
                 }, error => {
@@ -383,8 +383,8 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     }
 
     updateModelId(){
-        this.modelId = this.documentList.find((document: FileResponse) => document.id == this.convertToNumber(this.pdfLabelsFile)).modelId;
-        this.documentName = this.documentList.find((document:FileResponse) => document.id == this.convertToNumber(this.pdfLabelsFile)).documentType;
+        // this.modelId = this.documentList.find((document: FileResponse) => document.id == this.convertToNumber(this.pdfLabelsFile)).modelId;
+        // this.documentName = this.documentList.find((document:FileResponse) => document.id == this.convertToNumber(this.pdfLabelsFile)).documentType;
     }
 
 }
