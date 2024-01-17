@@ -87,7 +87,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
 
     selectedPageInDocument = 1;
     totalPagesInDocument = 1;
-
+      newPDFURL:any;
     httpClient: HttpClient;
 
     secondsSpentOnConditions: {
@@ -103,17 +103,19 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     }
     
   onFileSelected(event: any): void {
+    debugger
     const file: File = event.target.files[0];
 
     if (file && file.type === 'application/pdf') {
-      const url = URL.createObjectURL(file);
-      this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+        this.newPDFURL = URL.createObjectURL(file);
+      this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.newPDFURL);
     } else {
       console.error('Invalid file format. Please select a PDF file.');
     }
   }
 
   downloadPdf(): void {
+    debugger
     if (this.pdfUrl) {
       const xhr = new XMLHttpRequest();
       xhr.open('GET', this.pdfUrl as string, true);
@@ -191,7 +193,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     async onDocumentTypeChange(newValue: any) {
         this.selectedDocumentId = newValue;
         // console.log(this.selectedDocumentId)
-        // await this.downloadFile();
+        await this.downloadFile();
         this.ExtractData();
         this.updateLabelsDoc();
         //this.getExtractedData(newValue);
@@ -199,52 +201,45 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     }
 
     async ExtractData() {
-        console.log("this.pdfUrl", this.pdfUrl);
-
-        if (this.pdfUrl) {
-          const xhr = new XMLHttpRequest();
-          xhr.open('GET', this.pdfUrl as string, true);
-          xhr.responseType = 'blob';
-      
-          xhr.onload = async () => {
-            const blob = new Blob([xhr.response], { type: 'application/pdf' });
-            const file = new File([blob], 'filename.pdf', { type: 'application/pdf' });
-      
-            // Assuming DataExtraction is an Observable, you can use toPromise() if needed
-            this.DataExtraction.DataExtraction(this.selectedDocumentId, file, '9e224968-33e4-4652-b7b7-8574d048cdb9')
-              .subscribe((response: any) => {
-                // console.log(response);
-                this.extractedData = response.data;
-              });
-          };
-      
-          xhr.send();
-        } else {
-          console.error('Invalid PDF URL');
-        }
-    }
-
-    downloadFile(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const fileId = this.selectedDocumentId;
-            // console.log(fileId)
-            if (fileId) {
-                this.sftp.DownloadFile(fileId).subscribe((response: Blob) => {
+            const response = await this.httpClient.get(this.currentPdfSource.document, { responseType: 'blob' }).toPromise();
+            if (response) {
+                const file = new File([response], 'filename', { type: 'application/pdf' });
+                this.DataExtraction.DataExtraction(this.selectedDocumentId, file, '9e224968-33e4-4652-b7b7-8574d048cdb9').subscribe((response: any) => {
                     // console.log(response);
-                    const fileUrl = URL.createObjectURL(response);
-                    this.currentPdfSource.document = fileUrl;
-                    // console.log(this.currentPdfSource)
-                    this.fetchDataFromFile();
-                    resolve();
-                }, error => {
-                    console.error(error);
-                    reject(error);
+                    this.extractedData = response.data;
                 });
             } else {
-                console.error('No document selected');
-                reject('No document selected');
+                console.error('Failed to download file');
             }
-        });
+    
+    }
+
+    downloadFile() {
+        
+        // return new Promise((resolve, reject) => {
+            const fileId = this.selectedDocumentId;
+            // console.log(fileId)
+            // if (fileId) {
+            //     this.sftp.DownloadFile(fileId).subscribe((response: Blob) => {
+                    // console.log(response);
+                    // const fileUrl = URL.createObjectURL(response);
+                    // console.log('response', response)
+                    this.currentPdfSource.document = this.newPDFURL;
+                    console.log(this.currentPdfSource.document)
+                    console.log(this.newPDFURL)
+
+                    // console.log(this.currentPdfSource)
+                    this.fetchDataFromFile();
+                //     resolve();
+                // }, error => {
+                //     console.error(error);
+                //     reject(error);
+                // });
+        //     } else {
+        //         console.error('No document selected');
+        //         reject('No document selected');
+        //     }
+        // });
     }
 
     getLabelGroupFromNames(names: Array<string>) {
