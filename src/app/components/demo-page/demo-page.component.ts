@@ -10,6 +10,7 @@ import { Condition, LabelGroup } from '../../models/condition';
 import { SftpService } from '../../services/sftp.service';
 import { environment } from '../../../environments/environment';
 import { DataExtractionService } from '../../services/data-extraction.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface FileResponse {
     documentType: string;
@@ -42,6 +43,8 @@ interface Data {
     styleUrl: './demo-page.component.css'
 })
 export class DemoPageComponent implements OnInit, OnDestroy {
+    pdfUrl: SafeResourceUrl | null = null;
+  
     modelId: string = '';
     isExtractButtonClicked = false;
     @ViewChild(PdfThumbnailComponent) pdfThumbnail!: PdfThumbnailComponent;
@@ -95,10 +98,43 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     durationIntervalKey: number | undefined;
     secondsPassedForActiveSession = 0;
 
-    constructor(httpClient: HttpClient, private DataExtraction : DataExtractionService, private sftp: SftpService) {
+    constructor(httpClient: HttpClient, private DataExtraction : DataExtractionService, private sftp: SftpService,private sanitizer: DomSanitizer) {
         this.httpClient = httpClient;
     }
+    
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
 
+    if (file && file.type === 'application/pdf') {
+      const url = URL.createObjectURL(file);
+      this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    } else {
+      console.error('Invalid file format. Please select a PDF file.');
+    }
+  }
+
+  downloadPdf(): void {
+    if (this.pdfUrl) {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', this.pdfUrl as string, true);
+      xhr.responseType = 'blob';
+
+      xhr.onload = () => {
+        const blob = new Blob([xhr.response], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'downloaded.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      };
+
+      xhr.send();
+    }
+  }
     ngOnInit(): void {
         this.getDropDownData();
         this.durationIntervalKey = window.setInterval(this.updateDurationForActiveSession.bind(this), 1000);
@@ -155,7 +191,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     async onDocumentTypeChange(newValue: any) {
         this.selectedDocumentId = newValue;
         // console.log(this.selectedDocumentId)
-        await this.downloadFile();
+        // await this.downloadFile();
         this.ExtractData();
         this.updateLabelsDoc();
         //this.getExtractedData(newValue);
@@ -163,15 +199,28 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     }
 
     async ExtractData() {
-        const response = await this.httpClient.get(this.currentPdfSource.document, { responseType: 'blob' }).toPromise();
-        if (response) {
-            const file = new File([response], 'filename', { type: 'application/pdf' });
-            this.DataExtraction.DataExtraction(this.selectedDocumentId, file, '9e224968-33e4-4652-b7b7-8574d048cdb9').subscribe((response: any) => {
+        console.log("this.pdfUrl", this.pdfUrl);
+
+        if (this.pdfUrl) {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', this.pdfUrl as string, true);
+          xhr.responseType = 'blob';
+      
+          xhr.onload = async () => {
+            const blob = new Blob([xhr.response], { type: 'application/pdf' });
+            const file = new File([blob], 'filename.pdf', { type: 'application/pdf' });
+      
+            // Assuming DataExtraction is an Observable, you can use toPromise() if needed
+            this.DataExtraction.DataExtraction(this.selectedDocumentId, file, '9e224968-33e4-4652-b7b7-8574d048cdb9')
+              .subscribe((response: any) => {
                 // console.log(response);
                 this.extractedData = response.data;
-            });
+              });
+          };
+      
+          xhr.send();
         } else {
-            console.error('Failed to download file');
+          console.error('Invalid PDF URL');
         }
     }
 
