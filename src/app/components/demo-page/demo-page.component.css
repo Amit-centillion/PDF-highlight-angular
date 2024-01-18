@@ -356,3 +356,36 @@ tr.read td {
     background-color: rgba(215,222,255,.6);
     opacity: .7
 }
+.splash-screen {
+    position: fixed;
+    z-index: 1000;
+    width: 33%;
+        height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    font-family: Helvetica, "sans-serif";
+    background-color: #ffffff78;
+    color: #5E6278;
+    line-height: 1;
+    font-size: 14px;
+    font-weight: 400;
+    top: 0;
+    RIGHT: 0;
+}
+   
+  .splash-screen span {
+    color: #5E6278;
+    transition: none !important;
+    text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-size: 29px;
+  }
+   
+  .splash-screen img {
+    margin-left: calc(100vw - 100%);
+    margin-bottom: 30px;
+    height: 30px !important;
+  }
+   

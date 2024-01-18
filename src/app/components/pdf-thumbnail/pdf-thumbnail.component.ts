@@ -23,7 +23,7 @@ export interface BoundingBox {
     styleUrl: './pdf-thumbnail.component.css'
 })
 export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
-    @Input() pdfSource: LabelDoc | undefined;
+            @Input() pdfSource: LabelDoc | undefined;
     @Input() pageNumber!: number;
     @Input() defaultZoomLevel: number | undefined;
     @Input() selectedLabels!: Array<LabelInfo>;
@@ -80,9 +80,9 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
             stepsArray: zoomSteps,
         }
     }
-
+ 
     ngAfterViewInit(): void {
-
+        
         if (this.defaultZoomLevel) {
             this.zoomLevel = this.defaultZoomLevel;
         }

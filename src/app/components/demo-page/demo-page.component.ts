@@ -11,14 +11,14 @@ import { SftpService } from '../../services/sftp.service';
 import { environment } from '../../../environments/environment';
 import { DataExtractionService } from '../../services/data-extraction.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-
+ 
 interface FileResponse {
     documentType: string;
     modelId: string;
     docNameStartWith: string;
     id: number;
   }
-
+ 
 interface Data {
     dataExtractionValueTableId: number;
     fieldName: string;
@@ -34,7 +34,7 @@ interface Data {
     accuracy: string;
     accuracyDate: string;
 }
-
+ 
 @Component({
     selector: 'app-demo-page',
     standalone: true,
@@ -44,7 +44,7 @@ interface Data {
 })
 export class DemoPageComponent implements OnInit, OnDestroy {
     pdfUrl: SafeResourceUrl | null = null;
-  
+ 
     modelId: string = '';
     isExtractButtonClicked = false;
     @ViewChild(PdfThumbnailComponent) pdfThumbnail!: PdfThumbnailComponent;
@@ -63,6 +63,8 @@ export class DemoPageComponent implements OnInit, OnDestroy {
         labels: []
       };
     pdfLabelsFile = '';
+    isFileInputDisabled: boolean = true;
+    isButtonDisabled: boolean = true;
     pdfSource: LabelDoc | undefined;
     documentName = '';
     labels: Array<LabelInfo> = [];
@@ -72,40 +74,56 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     conditionFilters: Array<string> = ['All', 'Not-Applicable', 'Met', 'Unmet', 'Review'];
     selectedCondition: Condition | undefined;
     selectedLabelGroup: LabelGroup | undefined;
-
+    IsLoading: boolean = false
     extractedData: any[] = [];
-
+ 
     applicableConditions: Set<number> = new Set();
     metConditions: Set<number> = new Set();
     reviewConditions: Set<number> = new Set();
     unmetReviewConditions: Set<number> = new Set();
-
+ 
     filtersPerPage = 7;
     currentPage = 1;
     totalPages = 1;
     pages = [1];
-
+    highliteData:any = [
+        {
+            accuracy: 0,
+            accuracyFrom: "",
+            bottomRightX: 0,
+            bottomRightY:0,
+            confidence: 0,
+            fieldDisplayName: "",
+            fieldName: "",
+            fieldValue: "",
+            pageNo: "1",
+            pageWidth: "8.5",
+            topLeftX: 0,
+            topLeftY: 0,
+        }
+    ]
     selectedPageInDocument = 1;
     totalPagesInDocument = 1;
       newPDFURL:any;
     httpClient: HttpClient;
-
+ 
     secondsSpentOnConditions: {
         [conditionId: number]: number
     } = {};
-
+ 
     conditionStartTime: Date | undefined;
     durationIntervalKey: number | undefined;
     secondsPassedForActiveSession = 0;
-
+ 
     constructor(httpClient: HttpClient, private DataExtraction : DataExtractionService, private sftp: SftpService,private sanitizer: DomSanitizer) {
         this.httpClient = httpClient;
     }
-    
+   
   onFileSelected(event: any): void {
-    debugger
-    const file: File = event.target.files[0];
+    this.isButtonDisabled = (this.pdfLabelsFile  == '' ? true : false);
 
+    const file: File = event.target.files[0];
+ 
     if (file && file.type === 'application/pdf') {
         this.newPDFURL = URL.createObjectURL(file);
       this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.newPDFURL);
@@ -113,18 +131,17 @@ export class DemoPageComponent implements OnInit, OnDestroy {
       console.error('Invalid file format. Please select a PDF file.');
     }
   }
-
+ 
   downloadPdf(): void {
-    debugger
     if (this.pdfUrl) {
       const xhr = new XMLHttpRequest();
       xhr.open('GET', this.pdfUrl as string, true);
       xhr.responseType = 'blob';
-
+ 
       xhr.onload = () => {
         const blob = new Blob([xhr.response], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
-
+ 
         const a = document.createElement('a');
         a.href = url;
         a.download = 'downloaded.pdf';
@@ -133,7 +150,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       };
-
+ 
       xhr.send();
     }
   }
@@ -178,7 +195,6 @@ export class DemoPageComponent implements OnInit, OnDestroy {
                     fileName = 'Loan Estimate.pdf';
                     break;
             }
-            
             this.pdfSource.document = this.currentPdfSource.document;
             //this.documentName = this.pdfSource.document.substring(0, this.pdfSource.document.lastIndexOf('.'));
         }
@@ -189,46 +205,39 @@ export class DemoPageComponent implements OnInit, OnDestroy {
           this.documentList = documentData.data
         })
       }
-
+ 
     async onDocumentTypeChange(newValue: any) {
+        this.IsLoading = true
         this.selectedDocumentId = newValue;
-        // console.log(this.selectedDocumentId)
         await this.downloadFile();
         this.ExtractData();
         this.updateLabelsDoc();
         //this.getExtractedData(newValue);
-        this.isExtractButtonClicked = true;
+        this.highlight(this.highliteData[0],1)
     }
-
+ 
     async ExtractData() {
             const response = await this.httpClient.get(this.currentPdfSource.document, { responseType: 'blob' }).toPromise();
             if (response) {
                 const file = new File([response], 'filename', { type: 'application/pdf' });
                 this.DataExtraction.DataExtraction(this.selectedDocumentId, file, '9e224968-33e4-4652-b7b7-8574d048cdb9').subscribe((response: any) => {
-                    // console.log(response);
                     this.extractedData = response.data;
+                    this.isExtractButtonClicked = true;
+                    this.IsLoading = false
                 });
             } else {
                 console.error('Failed to download file');
             }
-    
+   
     }
-
+ 
     downloadFile() {
-        
         // return new Promise((resolve, reject) => {
             const fileId = this.selectedDocumentId;
-            // console.log(fileId)
             // if (fileId) {
             //     this.sftp.DownloadFile(fileId).subscribe((response: Blob) => {
-                    // console.log(response);
                     // const fileUrl = URL.createObjectURL(response);
-                    // console.log('response', response)
                     this.currentPdfSource.document = this.newPDFURL;
-                    console.log(this.currentPdfSource.document)
-                    console.log(this.newPDFURL)
-
-                    // console.log(this.currentPdfSource)
                     this.fetchDataFromFile();
                 //     resolve();
                 // }, error => {
@@ -241,19 +250,19 @@ export class DemoPageComponent implements OnInit, OnDestroy {
         //     }
         // });
     }
-
+ 
     getLabelGroupFromNames(names: Array<string>) {
         const defaultGroup: LabelGroup = {
             pageNumber: 1,
             labels: [],
         };
-
+ 
         if (names.length === 0) {
             return defaultGroup;
         }
-
+ 
         const labels = this.labels.filter(label => names.includes(label.label));
-
+ 
         if (labels.length === 0) {
             const emptyGroup: LabelGroup = {
                 pageNumber: 0,
@@ -266,114 +275,114 @@ export class DemoPageComponent implements OnInit, OnDestroy {
             };
             return emptyGroup;
         }
-
+ 
         const firstLabel = labels[0];
-
+ 
         if (firstLabel.value.length === 0) {
             return defaultGroup;
         }
-
+ 
         const firstLabelPage = firstLabel.value[0].page;
-
+ 
         const labelGroup: LabelGroup = {
             pageNumber: firstLabelPage,
             labels: labels,
             zoomLevel: 2,
         };
-
+ 
         return labelGroup;
     }
-
-    
+ 
+   
     goToDefaultDocumentPage(pageNumber: number) {
         if (pageNumber > 0 && pageNumber <= this.totalPagesInDocument) {
             this.selectedPageInDocument = pageNumber;
         }
     }
-
+ 
     updateDefaultTotalPages(totalPages: number) {
         this.totalPagesInDocument = totalPages;
     }
-
+ 
     selectLabelGroup(labelGroup: LabelGroup) {
         if (labelGroup.pageNumber) {
             this.selectedPageInDocument = labelGroup.pageNumber;
         } else {
             this.selectedPageInDocument = 1;
         }
-
+ 
         this.selectedLabelGroup = labelGroup;
     }
-
+ 
     getReadableStringFromTotalSeconds(totalSeconds: number) {
         const totalMinutes = Math.floor(totalSeconds / 60);
-
+ 
         const hours = Math.floor(totalMinutes / 60);
         const minutes = totalMinutes % 60;
         const seconds = totalSeconds % 60;
-
+ 
         let readableString = '';
-
+ 
         if (hours) {
             readableString += `${hours}h `;
         }
-
+ 
         if (hours || minutes) {
             readableString += `${minutes}m `;
         }
-
+ 
         readableString += `${seconds}s`;
-
+ 
         return readableString;
     }
-
+ 
     readableTimeSpentOnCondition(condition: Condition) {
         let totalSeconds = this.secondsSpentOnConditions[condition.id] || 0;
         if (condition.id === this.selectedCondition?.id) {
             totalSeconds += this.secondsPassedForActiveSession;
         }
-
+ 
         return this.getReadableStringFromTotalSeconds(totalSeconds);
     }
-
+ 
     getTotalTimeSpentOnConditions() {
         let totalSeconds = Object.keys(this.secondsSpentOnConditions).map(conditionId => Number(conditionId)).reduce((prev, cur) => {
             return prev + this.secondsSpentOnConditions[cur];
         }, 0);
-
+ 
         if (this.selectedCondition) {
             totalSeconds += this.secondsPassedForActiveSession;
         }
-
+ 
         return this.getReadableStringFromTotalSeconds(totalSeconds);
     }
-
+ 
     submitForm() {
         window.alert('Saved');
     }
-
+ 
     updateLabelsDoc() {
         this.selectedCondition = undefined;
         this.selectedLabelGroup = undefined;
         this.selectedPageInDocument = 1;
-
+ 
         this.secondsSpentOnConditions = {};
         this.conditionStartTime = undefined;
         this.secondsPassedForActiveSession = 0;
-
+ 
         //this.fetchDataFromFile();
     }
-
+ 
     getExtractedData(documentTypeId: number){
         this.DataExtraction.GetExtractedData(documentTypeId).subscribe((extractedData:any)=>{
           this.extractedData = extractedData.data
         })
     }
-
+ 
     convertToNumber(value: string): number {
         return Number(value);
     }
-
+ 
     highlight(data: Data, option: Number){
         if (data && option == 1){
             let newHeight;
@@ -382,7 +391,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
             let data1 = this.convertToNumber(data.topLeftX)
             let data2 = this.convertToNumber(data.bottomRightY)
             let data3 = this.convertToNumber(data.bottomRightX)
-
+ 
             this.box.top = this.convertToNumber(data.topLeftX)
             this.box.left = this.convertToNumber(data.topLeftY)
             this.box.height = Math.abs(datanew - data2);
@@ -392,7 +401,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
             this.box.pageNo = this.convertToNumber(data.pageNo)
             this.box.pageWidth = this.convertToNumber(data.pageWidth)
             this.selectedPageInDocument = this.convertToNumber(data.pageNo)
-            this.pdfThumbnail.updateBox(this.box, this.convertToNumber(data.pageNo),data,newHeight,newwidth)
+            this.pdfThumbnail?.updateBox(this.box, this.convertToNumber(data.pageNo),data,newHeight,newwidth)
         }
         else if (option == 2){
             let newHeight;
@@ -404,33 +413,36 @@ export class DemoPageComponent implements OnInit, OnDestroy {
             // this.box.pageNo = 0
             // this.box.pageWidth = 0
             // this.pdfThumbnail.updateBox(this.box, this.selectedPageInDocument,data)
-        
+       
             let datanew =  this.convertToNumber(data.topLeftY)
             let data1 = this.convertToNumber(data.topLeftX)
             let data2 = this.convertToNumber(data.bottomRightY)
             let data3 = this.convertToNumber(data.bottomRightX)
-
+ 
             this.box.top = this.convertToNumber(data.topLeftX)
             this.box.left = this.convertToNumber(data.topLeftY)
             this.box.height = Math.abs(datanew - data2);
             newHeight = this.box.height;
-
+ 
             this.box.width = Math.abs(data1 - data3);
             newwidth = this.box.width
-
+ 
             this.box.pageNo = this.convertToNumber(data.pageNo)
             this.box.pageWidth = this.convertToNumber(data.pageWidth)
             this.selectedPageInDocument = this.convertToNumber(data.pageNo)
-
+ 
             this.pdfThumbnail.updateBox(this.box, this.convertToNumber(data.pageNo),data,newHeight,newwidth)
         }
     }
-
+    onSelectDocType(e:any){
+        let findData = this.documentList.find((x:any)=>x.id == e.target.value);
+        this.documentName = findData.documentType
+    }
     updateModelId(){
+        this.isFileInputDisabled = (this.pdfLabelsFile == '' ? true : false);
+
         // this.modelId = this.documentList.find((document: FileResponse) => document.id == this.convertToNumber(this.pdfLabelsFile)).modelId;
         // this.documentName = this.documentList.find((document:FileResponse) => document.id == this.convertToNumber(this.pdfLabelsFile)).documentType;
     }
-
+ 
 }
-
-
