@@ -111,7 +111,15 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
 
         this.loadPdfDocument();
     }
-
+    testFunction(){
+        this.zoomLevel = 1.5
+        let updateData = {
+            highValue: undefined,
+            pointerType: 0,
+            value: 1.5
+        }
+        this.updateZoomLevel(updateData)
+    }
     loadPdfDocument() {
         if (!this.pdfSource) {
             throw new Error('The PDF doc needs to be defined');
@@ -141,7 +149,7 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
             .catch(error => console.error('Error loading PDF:', error));
     };
 
-    updateBox(inputBox: BoundingBox, pageNo: number,data:any,newHeight:any,newwidth:any){        
+    updateBox(inputBox: BoundingBox, pageNo: number,data:any,newHeight:any,newwidth:any){
         if (this.pdfDoc){
             this.pdfDoc.getPage(pageNo).then(page => {
                 const viewport = page.getViewport({ scale: 1 * this.zoomLevel });
@@ -181,6 +189,7 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
             });
         }
     }
+  
     updateZoomLevelBox(zoomLevel: any,data:any) {
         this.updatedZoomLevel = zoomLevel;
         const viewport = this.page.getViewport({ scale: zoomLevel });

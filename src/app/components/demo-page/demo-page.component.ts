@@ -207,6 +207,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
       }
  
     async onDocumentTypeChange(newValue: any) {
+        this.pdfThumbnail?.testFunction()
         this.IsLoading = true
         this.selectedDocumentId = newValue;
         await this.downloadFile();

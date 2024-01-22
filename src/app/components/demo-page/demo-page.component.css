@@ -97,7 +97,7 @@ app-pdf-thumbnail {
 
 .pdf-viewer .space>app-pdf-thumbnail.single,
 .no-condition-section>app-pdf-thumbnail {
-    width: calc(100% - 50px);
+    width: calc(105% - 50px);
     height: calc(75vh - 50px);
 }
 
@@ -280,7 +280,7 @@ app-pdf-thumbnail {
 
 div.divTable {
     max-width: 100%;
-    max-height: calc(100vh - 274px);
+    max-height: calc(100vh - 224px);
     overflow-y: auto;
     position: relative;
 }
