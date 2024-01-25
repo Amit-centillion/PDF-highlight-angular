@@ -1,6 +1,6 @@
 <div id="splash-screen" class="splash-screen" *ngIf="IsLoading">
     <span>Loading ...</span>
-  </div>
+</div>
 <header id="header" class="header header-nav fixed-top align-items-center">
     <nav class="navbar navbar-expand-md navbar-light bg-light p-0">
         <div class="container-fluid">
@@ -52,136 +52,154 @@
     <section class="section">
         <div class="row">
             <div class="col-12">
-                <div class="card pdfView shadow-none">
+                <app-user *ngIf="userComponent" (UserValid)="receiveBooleanValue($event)"></app-user>
+                <div class="card pdfView shadow-none" *ngIf="userValid">
                     <div class="card-body p-0">
-                        <div class="d-flex">
-                            <div class="divFilter_bg">
-                                <div class="d-flex align-items-center justify-content-start">
-                                    <div class="ms-3">
-                                        <label for="selLocation">Document: </label>
-                                    </div>
-                                    <div class="ms-1">
-                                        <select class="form-select" name="documentType" [(ngModel)]="pdfLabelsFile" (ngModelChange)="updateModelId()" (change)="onSelectDocType($event)">
-                                            <option value="">Select Document Type</option>
-                                            <option *ngFor="let document of documentList" [value]="document.id">
-                                                {{document.docNameStartWith}}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <!-- <button type="submit" id="documentListSearch" class="btn btn-primary ms-2"
+                        <div class="divFilter_bg">
+                            <div class="d-flex align-items-center justify-content-start">
+                                <div class="">
+                                    <label for="selLocation">Document: </label>
+                                </div>
+                                <div class="ms-2">
+                                    <select class="form-select" name="documentType" [(ngModel)]="pdfLabelsFile"
+                                        (ngModelChange)="updateModelId()" (change)="onSelectDocType($event)">
+                                        <option value="">Select Document Type</option>
+                                        <option *ngFor="let document of documentList" [value]="document.id">
+                                            {{document.docNameStartWith}}
+                                        </option>
+                                    </select>
+                                </div>
+                                <!-- <button type="submit" id="documentListSearch" class="btn btn-primary ms-2"
                                         (click)="onDocumentTypeChange(pdfLabelsFile)">
                                         <span id="displaytxt">Extract</span>
                                         <span id="displayIco" class="hide"><i class="bi bi-eye f-12"></i></span>
                                     </button> -->
+
+                                <div class="ms-3 me-2">
+                                    <input type="file" class="form-control" accept=".pdf"
+                                        (change)="onFileSelected($event)" [disabled]="isFileInputDisabled" />
                                 </div>
-                            </div>
-                            <div class="divFilter_bg ms-2">
-                                <div class="d-flex align-items-center justify-content-start">
-                                    <div class="ms-3">
-                                    </div>
-                                 
-                                    
-                                    <div class="ms-1">
-                                        <input type="file" class="form-control" accept=".pdf" (change)="onFileSelected($event)" [disabled]="isFileInputDisabled"/>
-                                    </div>
-                                    
-                                    <button type="submit" id="documentListSearch" class="btn btn-primary ms-2"
-                                        (click)="onDocumentTypeChange(pdfLabelsFile)" [disabled]="isButtonDisabled">
-                                        <span id="displaytxt">Extract</span>
-                                        <span id="displayIco" class="hide"><i class="bi bi-eye f-12"></i></span>
-                                    </button>
-                                    
-                                </div>
+                                <button type="submit" id="documentListSearch" class="btn btn-primary ms-2"
+                                    (click)="onDocumentTypeChange(pdfLabelsFile)" [disabled]="isButtonDisabled">
+                                    <span id="displaytxt">Extract</span>
+                                    <span id="displayIco" class="hide"><i class="bi bi-eye f-12"></i></span>
+                                </button>
+                                <div class="ms-4 text-danger"><b>The field highlight works well with A4 format!!!</b></div>
                             </div>
                         </div>
-                        
-                        <div class=" main-table">
-                            <div class="row mt-2">
-                                <div class="col-sm-8">
-                                    <div class="pdf-viewer space">
-                                        <ng-container *ngIf="selectedCondition && !selectedLabelGroup">
-                                            <ng-container *ngFor="let labelGroup of selectedCondition.labelGroups">
-                                                <app-pdf-thumbnail
-                                                    [ngClass]="{'single': selectedCondition.labelGroups.length === 1}"
-                                                                                                        [pdfSource]="pdfSource" [pageNumber]="labelGroup.pageNumber"
-                                                    [selectedLabels]="labelGroup.labels"
-                                                    [defaultZoomLevel]="labelGroup.zoomLevel"
-                                                    [pclData]="labelGroup.pclData"
-                                                    (selectLabelGroupEvent)="selectLabelGroup($event)"></app-pdf-thumbnail>
-                                            </ng-container>
+                        <div class="row mt-2">
+                            <div class="col-sm-8">
+                                <div class="pdf-viewer space">
+                                    <ng-container *ngIf="selectedCondition && !selectedLabelGroup">
+                                        <ng-container *ngFor="let labelGroup of selectedCondition.labelGroups">
+                                            <app-pdf-thumbnail
+                                                [ngClass]="{'single': selectedCondition.labelGroups.length === 1}"
+                                                [pdfSource]="pdfSource" [pageNumber]="labelGroup.pageNumber"
+                                                [selectedLabels]="labelGroup.labels"
+                                                [defaultZoomLevel]="labelGroup.zoomLevel" [pclData]="labelGroup.pclData"
+                                                (selectLabelGroupEvent)="selectLabelGroup($event)"></app-pdf-thumbnail>
                                         </ng-container>
-                                        <ng-container *ngIf="pdfSource && (!selectedCondition || selectedLabelGroup)">
-                                            <div class="no-condition-section">
-                                                <header>
-                                                    <button class="previous"
-                                                        [ngClass]="{'inactive': selectedPageInDocument === 1}"
-                                                        (click)="goToDefaultDocumentPage(selectedPageInDocument - 1)">
-                                                        <img width="14" src="assets/next.svg" alt="" />
-                                                    </button>
-                                                    <div>
-                                                        <h4>Page {{ selectedPageInDocument}} of {{ totalPagesInDocument
-                                                            }}</h4>
+                                    </ng-container>
+                                    <ng-container *ngIf="pdfSource && (!selectedCondition || selectedLabelGroup)">
+                                        <div class="no-condition-section">
+                                            <div class="card mb-0">
+                                                <div class="card-body">
+                                                    <div class="pdfTitle">
+                                                        <div>Page {{ selectedPageInDocument}} of {{
+                                                            totalPagesInDocument
+                                                            }}
+                                                        </div>
+                                                        <div>
+                                                            <button class="previous btn btn-sm ps-2 pe-2"
+                                                                [ngClass]="{'inactive': selectedPageInDocument === 1}"
+                                                                (click)="goToDefaultDocumentPage(selectedPageInDocument - 1)">
+                                                                <i class="bi bi-chevron-left"></i>
+                                                            </button>
+                                                            <button class="next btn btn-sm ps-2 pe-2"
+                                                                [ngClass]="{'inactive': selectedPageInDocument === totalPagesInDocument}"
+                                                                (click)="goToDefaultDocumentPage(selectedPageInDocument + 1)">
+                                                                <i class="bi bi-chevron-right"></i>
+                                                            </button>
+
+                                                        </div>
                                                     </div>
-                                                    <button class="next"
-                                                        [ngClass]="{'inactive': selectedPageInDocument === totalPagesInDocument}"
-                                                        (click)="goToDefaultDocumentPage(selectedPageInDocument + 1)">
-                                                        <img width="14" src="assets/next.svg" alt="" />
-                                                    </button>
-                                                </header>
-                                                <app-pdf-thumbnail [pdfSource]="pdfSource"
-                                                    [pageNumber]="selectedPageInDocument"
-                                                    [selectedLabels]="selectedLabelGroup && selectedLabelGroup.pageNumber === selectedPageInDocument ? selectedLabelGroup.labels : []"
-                                                    (totalPagesEvent)="updateDefaultTotalPages($event)"></app-pdf-thumbnail>
- 
-                                            </div>
-                                        </ng-container>
- 
-                                    </div>
-                                </div>
- 
-                                <div id="divDataView" class="col-sm-4" *ngIf="isExtractButtonClicked">
-                                    <div class="card mb-0">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between mt-2">
-                                                <h1>Data Extraction</h1>
-                                                <div class="text-end">
-                                                    <!-- <button type="submit" id="SubmitEntries"
-                                                        class="btn btn-secondary mb-2">Submit</button> -->
+                                                    <app-pdf-thumbnail [pdfSource]="pdfSource"
+                                                        [pageNumber]="selectedPageInDocument"
+                                                        [selectedLabels]="selectedLabelGroup && selectedLabelGroup.pageNumber === selectedPageInDocument ? selectedLabelGroup.labels : []"
+                                                        (totalPagesEvent)="updateDefaultTotalPages($event)"></app-pdf-thumbnail>
+
                                                 </div>
                                             </div>
-                                            <div class="divTable">
-                                                <table id="example" class="table mytable-new" style="width:100%">
-                                                    <thead>
-                                                        <tr>
-                                                            <th width="20%">{{documentName}}</th>
-                                                            <th width="80%">Extracted Value Label</th>
-                                                            <th>Accuracy</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>                                                      
-                                                        <tr *ngFor="let item of extractedData">
-                                                            <td>{{item.fieldDisplayName}}</td>
-                                                            <td>
-                                                                <div class="input-group"  [ngClass]="{
+                                        </div>
+                                    </ng-container>
+                                </div>
+                            </div>
+
+                            <div id="divDataView" class="col-sm-4" *ngIf="isExtractButtonClicked">
+                                <div class="card mb-0">
+                                    <!-- <div id="splash-screen" class="splash-screen" *ngIf="IsLoading">
+                                            <span>Loading ...</span>
+                                          </div> -->
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <h1>Data Extraction</h1>
+                                            <div class="text-end">
+                                                <!-- <button type="submit" id="SubmitEntries"
+                                                        class="btn btn-secondary mb-2">Submit</button> -->
+                                            </div>
+                                        </div>
+                                        <div class="divTable">
+                                            <table id="example" class="table mytable-new" style="width:100%">
+                                                <thead>
+                                                    <tr>
+                                                        <th width="20%">{{documentName}}</th>
+                                                        <th width="80%">Extracted Value Label</th>
+                                                        <th>Accuracy</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr *ngFor="let item of extractedData">
+                                                        <td>{{item.fieldDisplayName}}</td>
+                                                        <td>
+                                                            <div class="input-group" [ngClass]="{
                                                                     's-red': ((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) / 2) * 100 < 50,
                                                                     's-yellow': ((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) / 2) * 100 >= 50 && ((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) / 2) * 100 <= 80,
                                                                     's-green': ((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) / 2) * 100 > 80
                                                                   }">
-                                                                    <input type="text" class="form-control"
-                                                                        value="{{item.fieldValue}}"
-                                                                        (focus)="highlight(item, 1)"
-                                                                        (blur)="highlight(item, 2)" />                                                            
-                                                                </div>
-                                                            </td>
-                                                            <td>                                                                        
-                                                                <span class="input-group-text" [title]="'Accuracy: ' + (convertToNumber(item.accuracy) * 100) + '% Confidence: ' + (convertToNumber(item.confidence) * 100) + '%'">{{((convertToNumber(item.accuracy) + convertToNumber(item.confidence)) /2) * 100 | number:'1.2-2'}}%</span>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                                <input type="text" class="form-control"
+                                                                    value="{{item.fieldValue}}"
+                                                                    (click)="highlight(item, 1)"
+                                                                    (blur)="highlight(item, 2)" />
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span class="input-group-text"
+                                                                [title]="'Accuracy: ' + (convertToNumber(item.accuracy) * 100) + '% Confidence: ' + (convertToNumber(item.confidence) * 100) + '%'">{{((convertToNumber(item.accuracy)
+                                                                + convertToNumber(item.confidence)) /2) * 100 |
+                                                                number:'1.2-2'}}%</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- <input type="file" (change)="onFileSelected($event)" accept=".pdf"> -->
+
+                        <!-- <iframe [src]="pdfUrl" width="100%" height="600px" *ngIf="pdfUrl"></iframe> -->
+
+                        <!-- <button (click)="downloadPdf()" *ngIf="pdfUrl">Download PDF</button> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<footer>
+    <div class="copyright">
+        © 2023. All rights reserved by <img src="../../assets/images/revelaition.png" class="ms-1">
+    </div>
+</footer>

@@ -11,5 +11,5 @@ export interface LabelInfo {
 
 export interface LabelDoc {
     document: string,
-    labels: Array<LabelInfo>
+    fileName: string
 }

@@ -23,7 +23,7 @@ export interface BoundingBox {
     styleUrl: './pdf-thumbnail.component.css'
 })
 export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
-            @Input() pdfSource: LabelDoc | undefined;
+    @Input() pdfSource: LabelDoc | undefined;
     @Input() pageNumber!: number;
     @Input() defaultZoomLevel: number | undefined;
     @Input() selectedLabels!: Array<LabelInfo>;
@@ -80,9 +80,9 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
             stepsArray: zoomSteps,
         }
     }
- 
+
     ngAfterViewInit(): void {
-        
+
         if (this.defaultZoomLevel) {
             this.zoomLevel = this.defaultZoomLevel;
         }
@@ -111,15 +111,7 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
 
         this.loadPdfDocument();
     }
-    testFunction(){
-        this.zoomLevel = 1.5
-        let updateData = {
-            highValue: undefined,
-            pointerType: 0,
-            value: 1.5
-        }
-        this.updateZoomLevel(updateData)
-    }
+
     loadPdfDocument() {
         if (!this.pdfSource) {
             throw new Error('The PDF doc needs to be defined');
@@ -148,12 +140,18 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
             })
             .catch(error => console.error('Error loading PDF:', error));
     };
+    convertToNumber(value: string): number {
+        return Number(value);
+    }
 
-    updateBox(inputBox: BoundingBox, pageNo: number,data:any,newHeight:any,newwidth:any){
+    updateBox(inputBox: BoundingBox, pageNo: number,data:any,newHeight:any,newwidth:any){       
         if (this.pdfDoc){
             this.pdfDoc.getPage(pageNo).then(page => {
                 const viewport = page.getViewport({ scale: 1 * this.zoomLevel });
                 const zoom = this.zoomLevel * 700;
+                const newWidth = this.convertToNumber(data.pageWidth);
+                this.calculation(newWidth)
+
                 if(this.percentageChange != 0) {
                     const newpercentage = ((this.zoomLevel-1.5)/1.5)*100;
 
@@ -161,35 +159,53 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
                     const htmlLeft = (data.topLeftY * viewport.width) / zoom;
                     const htmlHeight = (newHeight * viewport.height) / zoom;
                     const htmlWidth = (newwidth * viewport.width) / zoom;
-    
-                    inputBox.top = (htmlLeft + (0.3 * htmlLeft)) * 95;
-                    inputBox.left = (htmlTop - (0.003 * htmlTop)) * 96 ;
-                    inputBox.height = htmlHeight * 97;
-                    inputBox.width = (htmlWidth + (0.3 * htmlWidth)) * 96;
+
+                    inputBox.top = (htmlLeft + (0.2858 * htmlLeft)) *this.calculation(newWidth);
+                    inputBox.left = (htmlTop - (0.003 * htmlTop)) *this.calculation(newWidth) ;
+                    inputBox.height = (htmlHeight + 0.0013037706230412) *this.calculation(newWidth);
+                    inputBox.width = (htmlWidth + (0.3 * htmlWidth)) *this.calculation(newWidth);
 
                     inputBox.top = inputBox.top + (newpercentage/100)*inputBox.top;
                     inputBox.height = inputBox.height + (newpercentage/100)*inputBox.height;
                     inputBox.width = inputBox.width + (newpercentage/100)*inputBox.width;
                     inputBox.left = inputBox.left + (newpercentage/100)*inputBox.left;
                 }
-                else {                    
+                else {                 
                     const htmlTop = (inputBox.top * viewport.height) / zoom;
                     const htmlLeft = (inputBox.left * viewport.width) / zoom;
                     const htmlHeight = (inputBox.height * viewport.height) / zoom;
                     const htmlWidth = (inputBox.width * viewport.width) / zoom;
-    
-                    inputBox.top = (htmlLeft + (0.3 * htmlLeft) ) * 95;
-                    inputBox.left = (htmlTop - (0.003 * htmlTop)) * 96 ;
-                    inputBox.height = htmlHeight * 97;
-                    inputBox.width = (htmlWidth + (0.3 * htmlWidth)) * 96;
+
+                    inputBox.top = (htmlLeft + (0.2858 * htmlLeft) ) *this.calculation(newWidth);
+                    inputBox.left = (htmlTop - (0.003 * htmlTop)) *this.calculation(newWidth) ;
+                    inputBox.height = (htmlHeight + 0.0013037706230412) *this.calculation(newWidth);
+                    inputBox.width = (htmlWidth + (0.3 * htmlWidth)) *this.calculation(newWidth);
                 }
 
-                // this.renderPdfPage(page, viewport);
+                //this.renderPdfPage(page, viewport);
                 this.box = inputBox;
+                setTimeout(() => {
+                    this.scrollToBoundingBox();
+                }, 0);
             });
         }
     }
+    calculation(data:any){
   
+        let calcuData;
+        switch (data) {
+            case 12.6111:
+              calcuData = -11.295 * data + 207.45;
+                return calcuData;
+            case 12.3889:
+                calcuData = -11.295 * data + 208.45
+                return calcuData;
+            default:
+                calcuData =-11.295 * data + 192.0075;
+                return calcuData;
+        }
+    }
+    
     updateZoomLevelBox(zoomLevel: any,data:any) {
         this.updatedZoomLevel = zoomLevel;
         const viewport = this.page.getViewport({ scale: zoomLevel });
@@ -215,6 +231,7 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
        
 
         this.updatedZoomLevel = zoomLevel.value;
+
 
         this.setCanvasSize(viewport);
         this.renderPdfPage(this.page, viewport);
@@ -299,5 +316,14 @@ export class PdfThumbnailComponent implements AfterViewInit, OnChanges {
         if (changes['pdfSource'] && !changes['pdfSource'].firstChange && changes['pdfSource'].previousValue !== changes['pdfSource'].currentValue) {
             this.loadPdfDocument();
         }
+    }
+    resetZoomLevel(){
+        this.zoomLevel = 1.5
+        let updateData = {
+            hightValue : undefined,
+            pointerType : 0,
+            value : 1.5
+        }
+        this.updateZoomLevel(updateData)
     }
 }

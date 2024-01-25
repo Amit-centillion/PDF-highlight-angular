@@ -11,6 +11,7 @@ import { SftpService } from '../../services/sftp.service';
 import { environment } from '../../../environments/environment';
 import { DataExtractionService } from '../../services/data-extraction.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { UserComponent } from '../user/user.component';
  
 interface FileResponse {
     documentType: string;
@@ -38,13 +39,13 @@ interface Data {
 @Component({
     selector: 'app-demo-page',
     standalone: true,
-    imports: [CommonModule, FormsModule, HttpClientModule, PdfThumbnailComponent, CallbackPipe],
+    imports: [CommonModule, FormsModule, HttpClientModule, PdfThumbnailComponent,UserComponent, CallbackPipe],
     templateUrl: './demo-page.component.html',
     styleUrl: './demo-page.component.css'
 })
 export class DemoPageComponent implements OnInit, OnDestroy {
     pdfUrl: SafeResourceUrl | null = null;
- 
+    userValid:boolean =false
     modelId: string = '';
     isExtractButtonClicked = false;
     @ViewChild(PdfThumbnailComponent) pdfThumbnail!: PdfThumbnailComponent;
@@ -56,15 +57,17 @@ export class DemoPageComponent implements OnInit, OnDestroy {
         pageNo: 0,
         pageWidth: 0
     };
+    userComponent:boolean = true;
     selectedDocumentId: number = 0;
     documentList:any = [];
     currentPdfSource: LabelDoc = {
         document: '',
-        labels: []
+        fileName: ''
       };
     pdfLabelsFile = '';
     isFileInputDisabled: boolean = true;
     isButtonDisabled: boolean = true;
+
     pdfSource: LabelDoc | undefined;
     documentName = '';
     labels: Array<LabelInfo> = [];
@@ -125,13 +128,17 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     const file: File = event.target.files[0];
  
     if (file && file.type === 'application/pdf') {
+        this.currentPdfSource.fileName = file.name;
         this.newPDFURL = URL.createObjectURL(file);
       this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.newPDFURL);
     } else {
       console.error('Invalid file format. Please select a PDF file.');
     }
   }
- 
+  receiveBooleanValue(value: boolean) {
+    this.userComponent = false;
+    this.userValid = value
+  }
   downloadPdf(): void {
     if (this.pdfUrl) {
       const xhr = new XMLHttpRequest();
@@ -177,7 +184,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
         //const httpResponse: any = await lastValueFrom(this.httpClient.get(`assets/${this.pdfLabelsFile}`, { responseType: 'json' }));
         this.pdfSource = {
             document: `../../../assets/`,
-            labels: []};
+            fileName: ''};
 
         if (this.pdfSource?.document) {
             let fileName;
@@ -207,7 +214,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
       }
  
     async onDocumentTypeChange(newValue: any) {
-        this.pdfThumbnail?.testFunction()
+        this.pdfThumbnail?.resetZoomLevel();
         this.IsLoading = true
         this.selectedDocumentId = newValue;
         await this.downloadFile();
@@ -220,7 +227,7 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     async ExtractData() {
             const response = await this.httpClient.get(this.currentPdfSource.document, { responseType: 'blob' }).toPromise();
             if (response) {
-                const file = new File([response], 'filename', { type: 'application/pdf' });
+                const file = new File([response], this.currentPdfSource.fileName, { type: 'application/pdf' });
                 this.DataExtraction.DataExtraction(this.selectedDocumentId, file, '9e224968-33e4-4652-b7b7-8574d048cdb9').subscribe((response: any) => {
                     this.extractedData = response.data;
                     this.isExtractButtonClicked = true;
@@ -298,9 +305,17 @@ export class DemoPageComponent implements OnInit, OnDestroy {
     goToDefaultDocumentPage(pageNumber: number) {
         if (pageNumber > 0 && pageNumber <= this.totalPagesInDocument) {
             this.selectedPageInDocument = pageNumber;
+            this.pdfThumbnail?.resetZoomLevel();
+            this.removeHighlight();
         }
     }
- 
+    removeHighlight(){
+        let payloadUpdate = {
+            ...this.highliteData[0],
+            pageNo:this.selectedPageInDocument
+        }
+        this.highlight(payloadUpdate,1)
+    }
     updateDefaultTotalPages(totalPages: number) {
         this.totalPagesInDocument = totalPages;
     }

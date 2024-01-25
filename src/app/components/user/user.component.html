@@ -1,0 +1,20 @@
+<!-- <main id="main"></main> -->
+<form [formGroup]="userForm">
+    <div class="userinner row m-0">
+        <div class="col-12 d-flex align-items-center">
+            <div class="w-px-400 mx-auto">
+                <div class="userContainer">
+                    <div class="mb-3">
+                        <label for="exampleFormControlInput1" class="form-label"><b>User ID</b></label>
+                        <input class="form-control p-2" type="text" id="userid" formControlName="userId"
+                            placeholder="Enter User ID" autocomplete="off">
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-primary btn-lg d-grid w-100" type="button" id="submit"
+                            (click)="onClickSubmit()">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

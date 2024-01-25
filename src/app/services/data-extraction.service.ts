@@ -27,5 +27,17 @@ export class DataExtractionService {
   GetExtractedData(documentTypeId: number) {
     return this.http.get(this.baseUrl + '/GetDataExtraction?documentTypeId=' + documentTypeId + '&requestId=af512bdc-cdcf-47dc-0f0b-08dc136a3144');
   }
+  UploadFile(documentTypeId: any, file: File, userId: string){
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    let params = new HttpParams();
+    params = params.append('documentType', documentTypeId.toString());
+    params = params.append('user', userId);
+
+    return this.http.post(this.baseUrl + 'sendfile', formData, { params: params });
+  }
+
 }
 
+//https://msuitede.maigic.com/sendfile?documentType=A48FFD4F-B721-48FE-9F45-7478195D46BE&user=9e224968-33e4-4652-b7b7-8574d048cdb9
